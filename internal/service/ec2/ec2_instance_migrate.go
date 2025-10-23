@@ -830,9 +830,10 @@ func resourceInstanceV1() *schema.Resource {
 				Optional: true,
 				Default:  true,
 				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
-					// Suppress diff if network_interface is set
-					_, ok := d.GetOk("network_interface")
-					return ok
+					_, hasNetworkInterface := d.GetOk("network_interface")
+					_, hasPrimaryNetworkInterface := d.GetOk("primary_network_interface")
+					// Suppress diff if network_interface or primary_network_interface is set
+					return hasNetworkInterface || hasPrimaryNetworkInterface
 				},
 			},
 			"spot_instance_request_id": {

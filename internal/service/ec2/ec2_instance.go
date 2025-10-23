@@ -824,9 +824,10 @@ func resourceInstance() *schema.Resource {
 				Optional: true,
 				Default:  true,
 				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
-					// Suppress diff if network_interface is set
-					_, ok := d.GetOk("network_interface")
-					return ok
+					_, hasNetworkInterface := d.GetOk("network_interface")
+					_, hasPrimaryNetworkInterface := d.GetOk("primary_network_interface")
+					// Suppress diff if network_interface or primary_network_interface is set
+					return hasNetworkInterface || hasPrimaryNetworkInterface
 				},
 			},
 			"spot_instance_request_id": {
@@ -1353,7 +1354,9 @@ func resourceInstanceUpdate(ctx context.Context, d *schema.ResourceData, meta an
 
 	// SourceDestCheck can only be modified on an instance without manually specified network interfaces.
 	// SourceDestCheck, in that case, is configured at the network interface level
-	if _, ok := d.GetOk("network_interface"); !ok {
+	_, hasNetworkInterface := d.GetOk("network_interface")
+	_, hasPrimaryNetworkInterface := d.GetOk("primary_network_interface")
+	if !hasNetworkInterface && !hasPrimaryNetworkInterface {
 		// If we have a new resource and source_dest_check is still true, don't modify
 		sourceDestCheck := d.Get("source_dest_check").(bool)
 
